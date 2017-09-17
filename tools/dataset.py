@@ -11,6 +11,7 @@ class CLI:
         parser.add_argument('-l','--loadXML', nargs='+', help='Dialog XML file')
         parser.add_argument('-s','--shuffle', action='store_true', help='Shuffle messages')
         parser.add_argument('-o','--output', action='store_true', help='Output messages')
+        parser.add_argument('-O','--outputXML', action='store_true', help='Output messages in XML format')
         args = parser.parse_args()
         
         # Load XML
@@ -25,7 +26,10 @@ class CLI:
 
         # Output messages
         if args.output is True:
-            doc.output()
+            print(doc.toText())
+
+        elif args.outputXML is True:
+            print(doc.toXML())
 
 class Utterance:
     """Message of a conversation"""
@@ -38,6 +42,10 @@ class Utterance:
     def __str__(self):
         """String description of an utterance"""
         return "{}: {}".format(self.m_id, self.m_message)
+
+    def toXML(self):
+        """Convert utterance to <utt>"""
+        return '        <utt uid="' + self.m_id + '">' + self.m_message + '</utt>\n'
 
 class Conversation:
     """Conversation is a list of utterances"""
@@ -58,6 +66,13 @@ class Conversation:
         """String description of a conversation"""
         return '\n'.join(str(v) for v in self.m_utterances)
 
+    def toXML(self):
+        """Convert conversation to XML"""
+        code = "    <s>\n"
+        for utterance in self.m_utterances:
+            code += utterance.toXML()
+        code += "    </s>\n"
+        return code
 
 class Dialog:
     """A dialog structure"""
@@ -75,6 +90,14 @@ class Dialog:
         for conversation in self.m_conversations:
             conversation.shuffle()
         random.shuffle(self.m_conversations)
+
+    def toXML(self):
+        """Convert dialog to xml"""
+        code = "<dialog>\n"
+        for conversation in self.m_conversations:
+            code += conversation.toXML()
+        code += "</dialog>\n"
+        return code
 
     def __str__(self):
         """String description of a dialog"""
@@ -118,9 +141,16 @@ class Document:
             dialog.shuffle()
         random.shuffle(self.m_dialogs)
 
-    def output(self):
-        """Print document to the standard output"""
-        print('\n\n--- dialog separator ---\n\n'.join(str(v) for v in self.m_dialogs))
+    def toText(self):
+        """Convert document to text"""
+        return '\n\n--- dialog separator ---\n\n'.join(str(v) for v in self.m_dialogs)
+
+    def toXML(self):
+        """Convert document to XML"""
+        code = '<?xml version="1.0"?>\n'
+        for dialog in self.m_dialogs:
+            code += dialog.toXML()
+        return code
 
     def __getNodeText(self, node):
         """Extract text child node from a tag"""
