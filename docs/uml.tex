@@ -1,0 +1,92 @@
+%
+% Compilation of the examples from the TikZ-UML manual, v. 1.0b (2013-03-01)
+% http://www.ensta-paristech.fr/~kielbasi/tikzuml/index.php?lang=en
+%
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[french]{babel}
+\usepackage{fullpage}
+
+\usepackage{tikz-uml}
+
+\sloppy
+\hyphenpenalty 10000000
+
+\title{COMP 551 - Applied Machine Learning}
+\author{Breandan Considine \\ Zeyad Hazem \\ Amir El Bawab}
+
+\begin{document}
+
+\maketitle
+
+\section{Class Diagram}
+
+\begin{center}
+\begin{tikzpicture}
+
+% class CLI
+\umlclass[x=-3,y=-11]{CLI}{}
+{
+  	read(self) : void
+}
+
+% class Utterance
+\umlclass[x=0,y=0]{Utterance}{
+	m\_id : integer \\ 
+	m\_message : string
+}
+{
+  	\_\_init\_\_(self) \\ 
+  	toText(self) : string \\ 
+  	toXML(self) : string
+}
+
+% class Conversation
+\umlclass[x=9,y=0]{Conversation}{
+	m\_utterances : Utterance[]
+}
+{
+  	\_\_init\_\_(self) \\ 
+  	toText(self) : string \\
+  	toXML(self) : string \\
+  	addUtterance(self, id, message) : void \\
+  	shuffle(self) : void
+}
+
+% class Dialog
+\umlclass[x=8,y=-6]{Dialog}{
+	m\_conversations : Conversation[]
+}
+{
+  	\_\_init\_\_(self) \\ 
+  	toText(self) : string \\
+  	toXML(self) : string \\
+  	addConversation(self, conversation) : void \\
+  	shuffle(self) : void
+}
+
+% class Document
+\umlclass[x=-1,y=-6]{Document}{
+	m\_dialogs : Dialog[]
+}
+{
+  	\_\_init\_\_(self) \\ 
+  	toText(self) : string \\
+  	toXML(self) : string \\
+  	loadXML(self, fileName) : void \\
+  	shuffle(self) : void \\
+  	\_\_getNodeText(self, node) : string
+}
+
+\umlcompo[geometry=-|-, mult1=1, pos1=1, mult2=*, pos2=3, align2=left]{Conversation}{Utterance}
+\umlcompo[geometry=|-|, mult1=1, pos1=1, mult2=*, pos2=3, align2=left]{Dialog}{Conversation}
+\umlcompo[geometry=-|-, mult1=1, pos1=1, mult2=*, pos2=3, align2=left]{Document}{Dialog}
+\umlcompo[geometry=|-|, mult1=1, pos1=0.3, mult2=1, pos2=3, align2=left]{CLI}{Document}
+
+\end{tikzpicture}
+\end{center}
+
+
+\end{document}
