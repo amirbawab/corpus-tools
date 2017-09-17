@@ -39,7 +39,7 @@ class Utterance:
         self.m_id = id
         self.m_message = message
 
-    def __str__(self):
+    def toText(self):
         """String description of an utterance"""
         return "{}: {}".format(self.m_id, self.m_message)
 
@@ -62,9 +62,9 @@ class Conversation:
         """Shuffle messages in a conversation"""
         random.shuffle(self.m_utterances)
 
-    def __str__(self):
+    def toText(self):
         """String description of a conversation"""
-        return '\n'.join(str(v) for v in self.m_utterances)
+        return '\n'.join(v.toText() for v in self.m_utterances)
 
     def toXML(self):
         """Convert conversation to XML"""
@@ -99,9 +99,9 @@ class Dialog:
         code += "</dialog>\n"
         return code
 
-    def __str__(self):
+    def toText(self):
         """String description of a dialog"""
-        return '\n---\n'.join(str(v) for v in self.m_conversations)
+        return '\n---\n'.join(v.toText() for v in self.m_conversations)
 
 class Document:
     """Document for dialogs"""
@@ -143,7 +143,7 @@ class Document:
 
     def toText(self):
         """Convert document to text"""
-        return '\n\n--- dialog separator ---\n\n'.join(str(v) for v in self.m_dialogs)
+        return '\n\n--- dialog separator ---\n\n'.join(v.toText() for v in self.m_dialogs)
 
     def toXML(self):
         """Convert document to XML"""
