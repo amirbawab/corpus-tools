@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<dialog>
+    <s>
+        <utt uid="1">Hey, how are you?</utt>
+        <utt uid="2">I’m fine thank you!</utt>
+        <utt uid="1">Nice!</utt>
+    </s>
+    <s>
+        <utt uid="1">Who’s around for lunch?</utt>
+        <utt uid="2">Me!</utt>
+        <utt uid="3">Me too!</utt>
+    </s>
+</dialog>
