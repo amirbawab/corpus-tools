@@ -47,7 +47,7 @@ full_threads = list()
 
 for last_id in thread_by_id:
     thread = thread_by_id[last_id]
-    if (thread.__len__() > 1):
+    if (thread.__len__() > 1 and thread[thread.__len__() -1][15] not in parents):
         full_threads.append(thread)
 
 print(full_threads.__len__())
