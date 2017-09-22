@@ -16,7 +16,7 @@ thread_by_id = dict()
 rows = 1
 with open('reddit_france.csv', 'rb') as f:
     reader = csv.reader(f)
-    for i in range(500000):
+    for i in range(100000):
         row = reader.next()
         comment_id = row[15]
         thread_by_id[comment_id] = list([row])
