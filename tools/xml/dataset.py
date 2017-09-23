@@ -80,6 +80,15 @@ class Dialog:
     def __init__(self):
         """Initialize a Dialog"""
         self.m_conversations = []
+        self.dict = {}
+        self.speakers = 1
+
+    def getSpeakerId(self, id):
+        if not id in self.dict.keys():
+            self.dict[id] = self.speakers
+            self.speakers += 1
+
+        return self.dict[id]
     
     def addConversation(self, conversation):
         """Add a conversation to the dialog"""

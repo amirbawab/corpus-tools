@@ -1,5 +1,6 @@
 import csv
 import copy
+import re
 from dataset import *
 
 parents = set()
@@ -100,8 +101,11 @@ for thread in full_threads:
     conversation = Conversation()
     dialog.addConversation(conversation)
     for comment in thread:
-        body = comment[0].replace('\n', '\\n').replace('\r', '\\r')
-        conversation.addUtterance(comment[4].__hash__(), body)
+        body = re.sub('&gt;.*?\n\n|&gt;.*?\n|&gt;.*?$','',comment[0], flags=re.DOTALL).replace("\n", " ")  # Reg expression to replace quotation
+        body = ' '.join(body.split())   # Extra white space removal
+
+        # If valid utterance
+        conversation.addUtterance(dialog.getSpeakerId(comment[4].__hash__()), body)
 
 f = open('francais.xml', 'w+')
 f.write(dialog.toXML())
