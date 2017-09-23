@@ -1,0 +1,3 @@
+[submodule "tools/ngram/thirdparty/pugixml"]
+	path = tools/ngram/thirdparty/pugixml
+	url = https://github.com/zeux/pugixml

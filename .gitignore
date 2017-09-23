@@ -317,6 +317,4 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 build
-
-# End of https://www.gitignore.io/api/cmake,clion
-
+.idea/
