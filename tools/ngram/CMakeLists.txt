@@ -3,6 +3,9 @@ project(ngram)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(NGRAM_EXEC "ngram")
 
+# Compile with -std=c++11
+add_compile_options(-std=c++11)
+
 # Add XML parser project
 add_subdirectory(thirdparty/pugixml)
 
