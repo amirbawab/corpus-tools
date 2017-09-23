@@ -1,12 +1,93 @@
 #include <iostream>
-#include <pugixml.hpp>
-#include <sstream>
-#include <vector>
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
 #include <algorithm>
-#include <map>
+#include <ngram/ngram.h>
+
+// Global flags
+bool g_printCounter = false;
+bool g_caseInsensitive = false;
+
+Ngram::Ngram(pugi::xml_document *doc) {
+    m_doc = doc;
+}
+
+Ngram::~Ngram() {
+    delete m_doc;
+}
+
+void Ngram::filterMessage(std::string &uttStr) {
+    // Remove punctuations
+    for (size_t i = 0, len = uttStr.size(); i < len; i++) {
+        if (ispunct(uttStr[i])) {
+            uttStr.erase(i--, 1);
+            len = uttStr.size();
+        }
+    }
+}
+
+std::vector<std::string> Ngram::tokenizeUtt(const std::string &uttStr) {
+    auto start = std::find(uttStr.begin(), uttStr.end(), ' ');
+    std::vector<std::string> tokens;
+    tokens.push_back("<s>");
+    tokens.push_back(std::string(uttStr.begin(), start));
+    while (start != uttStr.end()) {
+        const auto finish = find(++start, uttStr.end(), ' ');
+        tokens.push_back(std::string(start, finish));
+        start = finish;
+    }
+    return tokens;
+}
+
+void Ngram::printNgramTable() {
+    std::cout << "Ngram table" << std::endl
+              << "-----------" << std::endl;
+    for(auto wordWord : m_wordWordCounter) {
+        for(auto word : wordWord.second) {
+            std::cout << wordWord.first << ":" << word.first << " -> " << word.second << std::endl;
+        }
+    }
+}
+
+void Ngram::printWordCount() {
+    std::cout << "Ngram word occurrence" << std::endl
+              << "---------------------" << std::endl;
+    for(auto word : m_wordCounter) {
+        std::cout << word.first << " -> " << word.second << std::endl;
+    }
+}
+
+void Ngram::buildNgramTable(bool caseInsensitive) {
+
+    // Find dialog tag
+    pugi::xml_node dialog = m_doc->child("dialog");
+
+    // Loop over conversations
+    for (pugi::xml_node sTag = dialog.child("s"); sTag; sTag = sTag.next_sibling("s")) {
+
+        // Loop over utterances
+        for (pugi::xml_node uttTag = sTag.child("utt"); uttTag; uttTag = uttTag.next_sibling("utt")) {
+            std::string uttStr = uttTag.child_value();
+            filterMessage(uttStr);
+
+            // Check if the letter case is important
+            if(caseInsensitive) {
+                std::transform(uttStr.begin(), uttStr.end(), uttStr.begin(), ::tolower);
+            }
+            std::vector<std::string> tokens = tokenizeUtt(uttStr);
+
+            // Increment counter for <s>
+            m_wordCounter[tokens[0]]++;
+
+            // Increment counter for the utt tokens
+            for(size_t index=1; index < tokens.size(); index++) {
+                m_wordWordCounter[tokens[index-1]][tokens[index]]++;
+                m_wordCounter[tokens[index]]++;
+            }
+        }
+    }
+}
 
 /**
  * Print program usage to stdout
@@ -17,6 +98,8 @@ void printUsage() {
             << "Usage: ngram [-i input|--]" << std::endl
             << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
             << "    -t, --template\t\tDisplay XML template" << std::endl
+            << "    -c, --counter\t\tDisplay Ngram results" << std::endl
+            << "    -I, --insensitive\t\tCase insensitive" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
 
@@ -52,13 +135,15 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
     struct option longOptions[] = {
             {"input", required_argument, 0, 'i'},
             {"template", required_argument, 0, 't'},
+            {"counter", no_argument, 0, 'c'},
+            {"insensitive", no_argument, 0, 'I'},
             {"help",   no_argument,       0, 'h'},
             {0, 0,                        0, 0}
     };
 
     int optionIndex = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "hti:", longOptions, &optionIndex)) != -1) {
+    while ((c = getopt_long(argc, argv, "hcIti:", longOptions, &optionIndex)) != -1) {
         switch (c) {
             case 'i':
                 if(strcmp(optarg, "--") == 0) {
@@ -78,6 +163,12 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
             case 't':
                 printXmlTemplate();
                 exit(0);
+            case 'c':
+                g_printCounter = true;
+                break;
+            case 'I':
+                g_caseInsensitive = true;
+                break;
             case 'h':
             default:
                 break;
@@ -85,88 +176,15 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
     }
 }
 
-/**
- * Filter message
- * Remove punctuations
- * @param uttStr
- */
-void filterMessage(std::string &uttStr) {
-    // Remove punctuations
-    for (size_t i = 0, len = uttStr.size(); i < len; i++) {
-        if (ispunct(uttStr[i])) {
-            uttStr.erase(i--, 1);
-            len = uttStr.size();
-        }
-    }
-}
 
-/**
- * Tokenize a string into a vector of strings
- * @param uttStr
- * @return
- */
-std::vector<std::string> tokenizeUtt(const std::string &uttStr) {
-    auto start = std::find(uttStr.begin(), uttStr.end(), ' ');
-    std::vector<std::string> tokens;
-    tokens.push_back("<s>");
-    tokens.push_back(std::string(uttStr.begin(), start));
-    while (start != uttStr.end()) {
-        const auto finish = find(++start, uttStr.end(), ' ');
-        tokens.push_back(std::string(start, finish));
-        start = finish;
-    }
-    return tokens;
-}
-
-/**
- * Print Ngram table to stdout
- * @param wordWordCounter
- */
-void printNgramTable(const std::map<std::string, std::map<std::string, unsigned int>> &wordWordCounter) {
-    for(auto wordWord : wordWordCounter) {
-        for(auto word : wordWord.second) {
-            std::cout << wordWord.first << ":" << word.first << " -> " << word.second << std::endl;
-        }
-    }
-}
-
-void buildNgramTable(pugi::xml_document &doc) {
-
-    // Prepare table
-    std::map<std::string, unsigned int> wordCounter;
-    std::map<std::string, std::map<std::string, unsigned int>> wordWordCounter;
-
-    // Find dialog tag
-    pugi::xml_node dialog = doc.child("dialog");
-
-    // Loop over conversations
-    for (pugi::xml_node sTag = dialog.child("s"); sTag; sTag = sTag.next_sibling("s")) {
-
-        // Loop over utterances
-        for (pugi::xml_node uttTag = sTag.child("utt"); uttTag; uttTag = uttTag.next_sibling("utt")) {
-            std::string uttStr = uttTag.child_value();
-            filterMessage(uttStr);
-            std::vector<std::string> tokens = tokenizeUtt(uttStr);
-
-            // Increment counter for <s>
-            wordCounter[tokens[0]]++;
-
-            // Increment counter for the utt tokens
-            for(size_t index=1; index < tokens.size(); index++) {
-                wordWordCounter[tokens[index-1]][tokens[index]]++;
-                wordCounter[tokens[index]]++;
-            }
-        }
-    }
-}
 
 int main(int argc, char** argv) {
     // Prepare xml document
-    pugi::xml_document doc;
+    pugi::xml_document *doc = new pugi::xml_document;
     pugi::xml_parse_result res;
 
     // Initialize parameters
-    initParams(argc, argv, doc, res);
+    initParams(argc, argv, *doc, res);
 
     // Handle errors
     if(res.status == pugi::status_internal_error) {
@@ -181,6 +199,14 @@ int main(int argc, char** argv) {
     }
 
     // Build the Ngram table
-    buildNgramTable(doc);
+    Ngram ngram(doc);
+    ngram.buildNgramTable(g_caseInsensitive);
+
+    // Print results if requested
+    if(g_printCounter) {
+        ngram.printNgramTable();
+        std::cout << std::endl;
+        ngram.printWordCount();
+    }
     return 0;
 }

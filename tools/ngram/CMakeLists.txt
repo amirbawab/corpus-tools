@@ -6,6 +6,9 @@ set(NGRAM_EXEC "ngram")
 # Compile with -std=c++11
 add_compile_options(-std=c++11)
 
+# Include header files
+include_directories(include)
+
 # Add XML parser project
 add_subdirectory(thirdparty/pugixml)
 
