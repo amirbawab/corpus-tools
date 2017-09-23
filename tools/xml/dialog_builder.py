@@ -1,5 +1,6 @@
 import csv
 import copy
+import re
 from dataset import *
 
 parents = set()
@@ -100,7 +101,7 @@ for thread in full_threads:
     conversation = Conversation()
     dialog.addConversation(conversation)
     for comment in thread:
-        body = comment[0].replace('\n', '\\n').replace('\r', '\\r')
+        body = re.sub('&gt;.*?\n','',comment[0], flags=re.DOTALL).replace("\n\n", "").replace("\n"," ")
         conversation.addUtterance(comment[4].__hash__(), body)
 
 f = open('francais.xml', 'w+')
