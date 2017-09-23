@@ -1,0 +1,44 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Applied Machine Learning\n\n\nIntroduction\n\n\nPipeline\n\n\nDemo links",
+            "title": "Home"
+        },
+        {
+            "location": "/#applied-machine-learning",
+            "text": "",
+            "title": "Applied Machine Learning"
+        },
+        {
+            "location": "/#introduction",
+            "text": "",
+            "title": "Introduction"
+        },
+        {
+            "location": "/#pipeline",
+            "text": "",
+            "title": "Pipeline"
+        },
+        {
+            "location": "/#demo-links",
+            "text": "",
+            "title": "Demo links"
+        },
+        {
+            "location": "/tex/Readme/",
+            "text": "Tex documentation\n\n\nCompile to PDF\n\n\npdflatex uml.tex",
+            "title": "Readme"
+        },
+        {
+            "location": "/tex/Readme/#tex-documentation",
+            "text": "",
+            "title": "Tex documentation"
+        },
+        {
+            "location": "/tex/Readme/#compile-to-pdf",
+            "text": "pdflatex uml.tex",
+            "title": "Compile to PDF"
+        }
+    ]
+}
