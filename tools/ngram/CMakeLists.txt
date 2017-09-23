@@ -6,5 +6,11 @@ set(NGRAM_EXEC "ngram")
 # Add XML parser project
 add_subdirectory(thirdparty/pugixml)
 
+# Include xml project header files
+include_directories(thirdparty/pugixml/src)
+
 # Add ngram exectuable
 add_executable(${NGRAM_EXEC} src/ngram.cpp)
+
+# Link xml project library
+target_link_libraries(${NGRAM_EXEC} pugixml)
