@@ -102,8 +102,10 @@ for thread in full_threads:
     dialog.addConversation(conversation)
     for comment in thread:
         body = re.sub('&gt;.*?\n\n|&gt;.*?\n|&gt;.*?$','',comment[0], flags=re.DOTALL).replace("\n", " ")  # Reg expression to replace quotation
-        body = ' '.join(body.split())
-        conversation.addUtterance(comment[4].__hash__(), body)
+        body = ' '.join(body.split())   # Extra white space removal
+
+        # If valid utterance
+        conversation.addUtterance(dialog.getSpeakerId(comment[4].__hash__()), body)
 
 f = open('francais.xml', 'w+')
 f.write(dialog.toXML())
