@@ -8,14 +8,7 @@
 // Global flags
 bool g_printCounter = false;
 bool g_caseInsensitive = false;
-
-Ngram::Ngram(pugi::xml_document *doc) {
-    m_doc = doc;
-}
-
-Ngram::~Ngram() {
-    delete m_doc;
-}
+std::string g_word;
 
 void Ngram::filterMessage(std::string &uttStr) {
     // Remove punctuations
@@ -48,6 +41,7 @@ void Ngram::printNgramTable() {
             std::cout << wordWord.first << ":" << word.first << " -> " << word.second << std::endl;
         }
     }
+    std::cout << "---" << std::endl;
 }
 
 void Ngram::printWordCount() {
@@ -56,9 +50,10 @@ void Ngram::printWordCount() {
     for(auto word : m_wordCounter) {
         std::cout << word.first << " -> " << word.second << std::endl;
     }
+    std::cout << "---" << std::endl;
 }
 
-void Ngram::buildNgramTable(bool caseInsensitive) {
+void Ngram::buildNgramTable() {
 
     // Find dialog tag
     pugi::xml_node dialog = m_doc->child("dialog");
@@ -72,7 +67,7 @@ void Ngram::buildNgramTable(bool caseInsensitive) {
             filterMessage(uttStr);
 
             // Check if the letter case is important
-            if(caseInsensitive) {
+            if(m_caseInsensitive) {
                 std::transform(uttStr.begin(), uttStr.end(), uttStr.begin(), ::tolower);
             }
             std::vector<std::string> tokens = tokenizeUtt(uttStr);
@@ -89,17 +84,45 @@ void Ngram::buildNgramTable(bool caseInsensitive) {
     }
 }
 
+std::vector<std::pair<std::string, double>> Ngram::whatsNext(std::string word, double threshold) {
+
+    // Check if case insensitive
+    if(m_caseInsensitive) {
+        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+    }
+
+    // Prepare sorted vector
+    std::vector<std::pair<std::string, double>> nextWords;
+
+    // Check if word exist in the database
+    if(m_wordCounter.find(word) != m_wordCounter.end()) {
+        for(auto &pair : m_wordCounter) {
+            if(m_wordWordCounter[pair.first].find(word) != m_wordWordCounter[pair.first].end()) {
+                nextWords.push_back(std::pair<std::string, double>(
+                        pair.first, (double)m_wordWordCounter[pair.first][word] / m_wordCounter[pair.first]));
+            }
+        }
+    }
+
+    // Sort words based on confidence level
+    sort(nextWords.begin(), nextWords.end(), [=](std::pair<std::string, double>& a, std::pair<std::string, double>& b){
+         return a.second < b.second;
+    });
+    return nextWords;
+}
+
 /**
  * Print program usage to stdout
  */
 void printUsage() {
     std::cout
-            << "ngram - Run Ngram on an xml input of the following form:" << std::endl << std::endl
+            << "ngram - Run Ngram on an xml input" << std::endl << std::endl
             << "Usage: ngram [-i input|--]" << std::endl
             << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
             << "    -t, --template\t\tDisplay XML template" << std::endl
             << "    -c, --counter\t\tDisplay Ngram results" << std::endl
             << "    -I, --insensitive\t\tCase insensitive" << std::endl
+            << "    -w, --word\t\t\tWhat the next value after this word" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
 
@@ -137,13 +160,14 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
             {"template", required_argument, 0, 't'},
             {"counter", no_argument, 0, 'c'},
             {"insensitive", no_argument, 0, 'I'},
+            {"word", no_argument, 0, 'w'},
             {"help",   no_argument,       0, 'h'},
             {0, 0,                        0, 0}
     };
 
     int optionIndex = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "hcIti:", longOptions, &optionIndex)) != -1) {
+    while ((c = getopt_long(argc, argv, "hcIti:w:", longOptions, &optionIndex)) != -1) {
         switch (c) {
             case 'i':
                 if(strcmp(optarg, "--") == 0) {
@@ -168,6 +192,9 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
                 break;
             case 'I':
                 g_caseInsensitive = true;
+                break;
+            case 'w':
+                g_word = optarg;
                 break;
             case 'h':
             default:
@@ -200,13 +227,25 @@ int main(int argc, char** argv) {
 
     // Build the Ngram table
     Ngram ngram(doc);
-    ngram.buildNgramTable(g_caseInsensitive);
+    ngram.setCaseInsensitive(g_caseInsensitive);
+    ngram.buildNgramTable();
 
     // Print results if requested
     if(g_printCounter) {
         ngram.printNgramTable();
         std::cout << std::endl;
         ngram.printWordCount();
+        std::cout << std::endl;
+    }
+
+    // Word occurrence
+    if(!g_word.empty()) {
+        std::cout << "Next possible word(s)" << std::endl
+                  << "---------------------" << std::endl;
+        auto result = ngram.whatsNext(g_word);
+        for(auto pair : result) {
+            std::cout << "P(" << g_word <<" | " << pair.first << ") = " << pair.second << std::endl;
+        }
     }
     return 0;
 }
