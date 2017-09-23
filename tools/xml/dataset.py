@@ -53,9 +53,17 @@ class Conversation:
     def __init__(self):
         """Initialize a Conversation"""
         self.m_utterances= []
+        self.dict = {}
+        self.speakers = 1
     
     def addUtterance(self, id, message):
         """Add a message to the conversation"""
+        if not id in self.dict.keys():
+            self.dict[id] = self.speakers
+            self.speakers += 1
+
+        id = self.dict[id]
+
         self.m_utterances.append(Utterance(id, message))
 
     def shuffle(self):
