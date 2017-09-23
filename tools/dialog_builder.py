@@ -16,15 +16,14 @@ thread_by_id = dict()
 rows = 1
 with open('reddit_france.csv', 'rb') as f:
     reader = csv.reader(f)
-    for i in range(100000):
-        row = reader.next()
+    for row in reader:
         comment_id = row[15]
         thread_by_id[comment_id] = list([row])
         parent_id = row[10][3:]
         if (parent_id != comment_id):
             parents.add(parent_id)
         if (rows % 100000 == 0):
-            print("Processed " + str(rows) + " rows...")
+            print("Processed " + str(rows) + " comments...")
         rows += 1
 
 print("Unique `parent_id`s:", len(parents))
@@ -38,16 +37,17 @@ for thread in thread_by_id.keys():
     comment = thread_by_id[thread][0]
     processed += 1
     if processed % 100000 == 0:
-        print("Processed " + str(processed) + " records...")
+        print("Processed " + str(processed) + " comments...")
     comment_id = comment[15]
     parent_id = comment[10][3:]
-    if (comment_id not in parents and comment_id == parent_id):
+    if (comment_id not in parents and parent_id not in thread_by_id):
         thread_by_id.__delitem__(thread)
         removed += 1
 
 print("Removed: " + str(removed) + ", remaining: " + str(len(thread_by_id)))
 
 full_threads = list()
+
 def merge_threads():
     merge_flag = False
     for thread in thread_by_id.values():
@@ -58,11 +58,10 @@ def merge_threads():
             parent_thread = thread_by_id[parent_id]
             new_current_thread = copy.copy(parent_thread) + thread_by_id[comment_id]
             op = new_current_thread[0]
-            op_comment_id = op[15]
             parent_of_op = op[10][3:]
-            op_is_topmost_parent_in_thread = op_comment_id == parent_of_op
+            op_is_topmost_parent_in_thread = parent_of_op not in parents
             last_comment_has_no_children = comment_id not in parents
-            if(op_is_topmost_parent_in_thread and last_comment_has_no_children):
+            if (op_is_topmost_parent_in_thread and last_comment_has_no_children):
                 full_threads.append(new_current_thread)
                 thread_by_id.__delitem__(comment_id)
             else:
@@ -82,7 +81,15 @@ for last_id in thread_by_id:
     thread = thread_by_id[last_id]
     last_comment_id = thread[-1][15]
     last_comment_parent = thread[-1][10][3:]
-    if (len(thread) > 1 and last_comment_id not in parents):
+    is_two_person_dialog = False
+
+    people = set()
+    for comment in thread:
+        people.add(comment[4])
+
+    if (len(thread) > 3
+        and len(people) == 2
+        and last_comment_id not in parents):
         full_threads.append(thread)
 
 print("Full threads: " + str(len(full_threads)))
