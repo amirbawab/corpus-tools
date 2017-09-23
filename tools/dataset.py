@@ -45,7 +45,7 @@ class Utterance:
 
     def toXML(self):
         """Convert utterance to <utt>"""
-        return '        <utt uid="' + self.m_id + '">' + self.m_message + '</utt>\n'
+        return '        <utt uid="' + str(self.m_id) + '">' + str(self.m_message) + '</utt>\n'
 
 class Conversation:
     """Conversation is a list of utterances"""
