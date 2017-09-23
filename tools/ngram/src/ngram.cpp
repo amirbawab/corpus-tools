@@ -11,7 +11,7 @@ void printUsage() {
             << "ngram - Run Ngram on an xml input of the following form:" << std::endl << std::endl
             << "Usage: ngram [-i input|--]" << std::endl
             << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
-            << "    -t, --template\t\t\tDisplay XML template" << std::endl
+            << "    -t, --template\t\tDisplay XML template" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
 
