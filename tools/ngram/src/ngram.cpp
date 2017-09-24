@@ -9,6 +9,7 @@
 bool g_printCounter = false;
 bool g_caseInsensitive = false;
 std::string g_word;
+double g_threshold = 0.0;
 
 void Ngram::filterMessage(std::string &uttStr) {
     // Remove punctuations
@@ -30,6 +31,7 @@ std::vector<std::string> Ngram::tokenizeUtt(const std::string &uttStr) {
         tokens.push_back(std::string(start, finish));
         start = finish;
     }
+    tokens.push_back("</s>");
     return tokens;
 }
 
@@ -38,7 +40,7 @@ void Ngram::printNgramTable() {
               << "-----------" << std::endl;
     for(auto wordWord : m_wordWordCounter) {
         for(auto word : wordWord.second) {
-            std::cout << wordWord.first << ":" << word.first << " -> " << word.second << std::endl;
+            std::cout << "count(" << wordWord.first << ", " << word.first << ") = " << word.second << std::endl;
         }
     }
     std::cout << "---" << std::endl;
@@ -48,7 +50,7 @@ void Ngram::printWordCount() {
     std::cout << "Ngram word occurrence" << std::endl
               << "---------------------" << std::endl;
     for(auto word : m_wordCounter) {
-        std::cout << word.first << " -> " << word.second << std::endl;
+        std::cout << "count(" << word.first << ") = " << word.second << std::endl;
     }
     std::cout << "---" << std::endl;
 }
@@ -96,10 +98,11 @@ std::vector<std::pair<std::string, double>> Ngram::whatsNext(std::string word, d
 
     // Check if word exist in the database
     if(m_wordCounter.find(word) != m_wordCounter.end()) {
-        for(auto &pair : m_wordCounter) {
-            if(m_wordWordCounter[pair.first].find(word) != m_wordWordCounter[pair.first].end()) {
+        for(auto &pair : m_wordWordCounter[word]) {
+            double prob = (double)m_wordWordCounter[word][pair.first] / m_wordCounter[word];
+            if(prob >= threshold) {
                 nextWords.push_back(std::pair<std::string, double>(
-                        pair.first, (double)m_wordWordCounter[pair.first][word] / m_wordCounter[pair.first]));
+                        pair.first, prob));
             }
         }
     }
@@ -123,6 +126,7 @@ void printUsage() {
             << "    -c, --counter\t\tDisplay Ngram results" << std::endl
             << "    -I, --insensitive\t\tCase insensitive" << std::endl
             << "    -w, --word\t\t\tWhat the next value after this word" << std::endl
+            << "    -T, --threshold\t\tProbability threshold" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
 
@@ -161,13 +165,14 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
             {"counter", no_argument, 0, 'c'},
             {"insensitive", no_argument, 0, 'I'},
             {"word", no_argument, 0, 'w'},
+            {"threshold", required_argument, 0, 'T'},
             {"help",   no_argument,       0, 'h'},
             {0, 0,                        0, 0}
     };
 
     int optionIndex = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "hcIti:w:", longOptions, &optionIndex)) != -1) {
+    while ((c = getopt_long(argc, argv, "hcIti:w:T:", longOptions, &optionIndex)) != -1) {
         switch (c) {
             case 'i':
                 if(strcmp(optarg, "--") == 0) {
@@ -195,6 +200,13 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
                 break;
             case 'w':
                 g_word = optarg;
+                break;
+            case 'T':
+                try {
+                    g_threshold = std::stod(optarg);
+                } catch (std::invalid_argument) {
+                    // Keep default value
+                }
                 break;
             case 'h':
             default:
@@ -240,11 +252,11 @@ int main(int argc, char** argv) {
 
     // Word occurrence
     if(!g_word.empty()) {
-        std::cout << "Next possible word(s)" << std::endl
+        std::cout << "Possible word(s) after " << g_word << std::endl
                   << "---------------------" << std::endl;
-        auto result = ngram.whatsNext(g_word);
+        auto result = ngram.whatsNext(g_word, g_threshold);
         for(auto pair : result) {
-            std::cout << "P(" << g_word <<" | " << pair.first << ") = " << pair.second << std::endl;
+            std::cout << "P(" << pair.first <<" | " << g_word << ") = " << pair.second << std::endl;
         }
     }
     return 0;
