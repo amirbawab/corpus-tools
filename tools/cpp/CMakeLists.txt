@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Include xml project header files
+# Include thirdparty libraries header files
 # Note: Include must be done before add_subdirectory()
 include_directories(thirdparty/pugixml/src)
+include_directories(thirdparty/json)
 
 # Compile with -std=c++11
 add_compile_options(-std=c++11)
 
-# Add XML parser project
+# Add thirdparty projects
 add_subdirectory(thirdparty/pugixml)
 
-# Add ngram project
+# Add sub-project
 add_subdirectory(ngram)
+add_subdirectory(json2xml)
