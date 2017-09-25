@@ -1,6 +1,12 @@
 #pragma once
 
-struct RedditNode {
+#include <string>
+#include <memory>
+#include <vector>
+#include <map>
+
+class RedditNode {
+public:
     std::string m_body;
     std::string m_author;
     std::string m_createdUtc;
@@ -11,4 +17,12 @@ struct RedditNode {
     std::string m_id;
     std::shared_ptr<RedditNode> m_parentNode;
     std::vector<std::shared_ptr<RedditNode>> m_childrenNodes;
+    bool isRoot() {
+        return m_id == m_parentId;
+    }
+};
+
+class RedditTree {
+public:
+    std::map<std::string, std::shared_ptr<RedditNode>> m_redditNodes;
 };
