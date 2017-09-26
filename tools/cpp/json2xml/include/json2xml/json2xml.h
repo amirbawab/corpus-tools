@@ -39,6 +39,12 @@ public:
     // Store conversations
     std::vector<std::vector<std::shared_ptr<RedditNode>>> m_conversationNodes;
 
+    // Heuristic #1: Check longest path
+    static std::function<void(std::shared_ptr<RedditNode>)> WEIGHT_LONGEST_PATH;
+
+    // Heuristic #2: Check shortest path
+    static std::function<void(std::shared_ptr<RedditNode>)> WEIGHT_SHORTEST_PATH;
+
     /**
      * Generate XML file based on the conversations
      */

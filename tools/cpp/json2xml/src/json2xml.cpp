@@ -250,6 +250,30 @@ void initParams(int argc, char *argv[]) {
     }
 }
 
+
+std::function<void(std::shared_ptr<RedditNode>)> RedditTree::WEIGHT_LONGEST_PATH = [&](std::shared_ptr<RedditNode> node) {
+    if(node) {
+        int maxHeight = -1;
+        for(auto &child : node->m_childrenNodes) {
+            RedditTree::WEIGHT_LONGEST_PATH(child);
+            maxHeight = std::max(maxHeight, child->m_weight);
+        }
+        node->m_weight = maxHeight + 1;
+    }
+};
+
+// Heuristic #2: Check shortest path
+std::function<void(std::shared_ptr<RedditNode>)> RedditTree::WEIGHT_SHORTEST_PATH = [&](std::shared_ptr<RedditNode> node) {
+    if(node) {
+        int maxHeight = 1;
+        for(auto &child : node->m_childrenNodes) {
+            RedditTree::WEIGHT_SHORTEST_PATH(child);
+            maxHeight = std::min(maxHeight, child->m_weight);
+        }
+        node->m_weight = maxHeight - 1;
+    }
+};
+
 int main(int argc, char** argv) {
 
     // Init params
@@ -273,21 +297,7 @@ int main(int argc, char** argv) {
     redditTree.linkNodes();
 
     std::cout << ">> Assigning weights to nodes" << std::endl;
-
-    // Heuristic #1: Check longest path
-    std::function<void(std::shared_ptr<RedditNode>)> longestPath = [&](std::shared_ptr<RedditNode> node) {
-        if(node) {
-            int maxHeight = -1;
-            for(auto &child : node->m_childrenNodes) {
-                longestPath(child);
-                maxHeight = std::max(maxHeight, child->m_weight);
-            }
-            node->m_weight = maxHeight + 1;
-       }
-    };
-
-    // Assign weight for all nodes
-    redditTree.putWeights(longestPath);
+    redditTree.putWeights(RedditTree::WEIGHT_SHORTEST_PATH);
 
     std::cout << ">> Building conversations" << std::endl;
     redditTree.buildConversations();
