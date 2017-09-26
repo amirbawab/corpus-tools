@@ -47,7 +47,7 @@ public:
     /**
      * Build conversations
      */
-    void buildConversations();
+    void buildConversations(int minSize, int maxSize);
 
     /**
      * Assign weights to nodes

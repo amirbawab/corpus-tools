@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <iostream>
+#include <climits>
 #include <json2xml/RedditNode.h>
 #include <json2xml/RedditTree.h>
 
@@ -9,6 +10,8 @@ std::string g_inputFileName;
 std::string g_outputFileName;
 bool g_showStat = false;
 int g_weightAlgorithm = RedditTree::WEIGHT_SHORTEST_PATH_NUM;
+size_t g_minConversationSize = 0;
+size_t g_maxConversationSize = SIZE_MAX;
 
 /**
  * Print program usage to stdout
@@ -17,24 +20,26 @@ void printUsage() {
     std::cout
             << "json2xml - Convert JSON of a specific format to XML" << std::endl << std::endl
             << "Usage: json2xml -i <input file> -o <output file>" << std::endl
-            << "    -i, --input\t\t\tInput file" << std::endl
-            << "    -o, --output\t\tOutput file" << std::endl
-            << "    -t, --template\t\tDisplay XML template" << std::endl
-            << "    -w, --weight\t\tAlgorithm used to set the nodes weights: (default=1)  2" << std::endl
-            << "                \t\t1) For every tree T in a forest F:" << std::endl
-            << "                \t\t     Select in T the shortest path P" << std::endl
-            << "                \t\t     Add P to the list of conversations" << std::endl
-            << "                \t\t     For every node N in P:" << std::endl
-            << "                \t\t       For every child node C of N:" << std::endl
-            << "                \t\t         Add C to F" << std::endl
-            << "                \t\t2) For every tree T in a forest F:" << std::endl
-            << "                \t\t     Select in T the longest path P" << std::endl
-            << "                \t\t     Add P to the list of conversations" << std::endl
-            << "                \t\t     For every node N in P:" << std::endl
-            << "                \t\t       For every child node C of N:" << std::endl
-            << "                \t\t         Add C to F" << std::endl
-            << "    -s, --stat\t\t\tShow statistics" << std::endl
-            << "    -h, --help\t\t\tDisplay this help message" << std::endl;
+            << "    -i, --input         Input file" << std::endl
+            << "    -o, --output        Output file" << std::endl
+            << "    -t, --template      Display XML template" << std::endl
+            << "    -w, --weight        Algorithm used to set the nodes weights: (default=1)  2" << std::endl
+            << "                        1) For every tree T in a forest F:" << std::endl
+            << "                             Select in T the shortest path P" << std::endl
+            << "                             Add P to the list of conversations" << std::endl
+            << "                             For every node N in P:" << std::endl
+            << "                               For every child node C of N:" << std::endl
+            << "                                 Add C to F" << std::endl
+            << "                        2) For every tree T in a forest F:" << std::endl
+            << "                             Select in T the longest path P" << std::endl
+            << "                             Add P to the list of conversations" << std::endl
+            << "                             For every node N in P:" << std::endl
+            << "                               For every child node C of N:" << std::endl
+            << "                                 Add C to F" << std::endl
+            << "    -s, --stat          Show statistics" << std::endl
+            << "    -m, --min           Minimum number of utterance per conversation" << std::endl
+            << "    -M, --max           Maximum number of utterance per conversation" << std::endl
+            << "    -h, --help          Display this help message" << std::endl;
 }
 
 /**
@@ -74,13 +79,15 @@ void initParams(int argc, char *argv[]) {
             {"stat", no_argument, 0, 's'},
             {"weight", required_argument, 0, 'w'},
             {"template", no_argument, 0, 't'},
+            {"min", required_argument, 0, 'm'},
+            {"max", required_argument, 0, 'M'},
             {"help",   no_argument,       0, 'h'},
             {0, 0,                        0, 0}
     };
 
     int optionIndex = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "htsi:o:w:", longOptions, &optionIndex)) != -1) {
+    while ((c = getopt_long(argc, argv, "htsi:o:w:m:M:", longOptions, &optionIndex)) != -1) {
         switch (c) {
             case 'i':
                 g_inputFileName = optarg;
@@ -91,12 +98,20 @@ void initParams(int argc, char *argv[]) {
             case 's':
                 g_showStat = true;
                 break;
+            case 'm':
+                try{
+                    g_minConversationSize = std::max(0UL, (size_t)std::stoi(std::string(optarg)));
+                } catch (std::invalid_argument){/*Do nothing*/}
+                break;
+            case 'M':
+                try{
+                    g_maxConversationSize = (size_t)std::stoi(std::string(optarg));
+                } catch (std::invalid_argument){/*Do nothing*/}
+                break;
             case 'w':
                 try{
                     g_weightAlgorithm = std::stoi(std::string(optarg));
-                }catch (std::invalid_argument){
-                    // Do nothing
-                }
+                }catch (std::invalid_argument){/*Do nothing*/}
                 break;
             case 't':
                 printXmlTemplate();
@@ -143,7 +158,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << ">> Building conversations" << std::endl;
-    redditTree.buildConversations();
+    redditTree.buildConversations(g_minConversationSize, g_maxConversationSize);
 
     // Generate XML
     if(!redditTree.generateXML(g_outputFileName)) {

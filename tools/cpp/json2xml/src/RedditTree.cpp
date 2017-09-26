@@ -74,7 +74,7 @@ void RedditTree::putWeights(std::function<void(std::shared_ptr<RedditNode> node)
     }
 }
 
-void RedditTree::buildConversations() {
+void RedditTree::buildConversations(int minSize, int maxSize) {
     std::queue<std::shared_ptr<RedditNode>> queue;
 
     // Push all roots to the queue
@@ -93,7 +93,9 @@ void RedditTree::buildConversations() {
         std::vector<std::shared_ptr<RedditNode>> path = _extractPath(front);
 
         // Add longest path to the threads
-        m_conversationNodes.push_back(path);
+        if(path.size() >= minSize && path.size() <= maxSize) {
+            m_conversationNodes.push_back(path);
+        }
 
         // Note: The last node in the path should not have any children, otherwise
         // there exist a path that is longer then the current extracted one.
