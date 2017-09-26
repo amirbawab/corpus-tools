@@ -2,6 +2,8 @@ import sys
 import re
 from langdetect import detect_langs
 
+# Usage: `head <bigquery_reddit_comments>.json | python3 preprocess.py | ...`
+
 if __name__ == "__main__":
     for line in sys.stdin:
         ln: str = line
