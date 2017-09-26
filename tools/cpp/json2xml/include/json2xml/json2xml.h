@@ -32,6 +32,7 @@ public:
     std::vector<std::shared_ptr<RedditNode>> m_rootNodes;
     std::vector<std::vector<std::shared_ptr<RedditNode>>> m_threadNodes;
     bool loadBuild(std::string fileName);
+    bool generateXML(std::string fileName);
 private:
     std::vector<std::shared_ptr<RedditNode>> _extractPath(std::shared_ptr<RedditNode> root);
     void _linkNodes();

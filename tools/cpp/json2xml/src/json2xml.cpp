@@ -18,7 +18,7 @@ std::string g_outputFileName;
 void printUsage() {
     std::cout
             << "json2xml - Convert JSON of a specific format to XML" << std::endl << std::endl
-            << "Usage: ngram [-i input|--]" << std::endl
+            << "Usage: json2xml -i <input file> -o <output file>" << std::endl
             << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
             << "    -t, --template\t\tDisplay XML template" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
@@ -50,10 +50,12 @@ bool RedditTree::_populate(std::string fileName) {
     // Load json file
     std::ifstream inputJson(fileName);
     if(!inputJson.is_open()) {
+        std::cerr << "Could not open input file" << std::endl;
         return false;
     }
     nlohmann::json jsonObj;
     if(inputJson >> jsonObj) {
+        std::cerr << "Could not validate JSON" << std::endl;
         return false;
     }
 
@@ -167,6 +169,27 @@ std::vector<std::shared_ptr<RedditNode>> RedditTree::_extractPath(std::shared_pt
     return nodes;
 }
 
+bool RedditTree::generateXML(std::string fileName) {
+    std::cout << ">> Generating XML: " << fileName << std::endl;
+    std::ofstream outputXML(fileName);
+    if(!outputXML.is_open()) {
+        std::cerr << "Could not open output file" << std::endl;
+        return false;
+    }
+    outputXML << "<?xml version=\"1.0\"?>" << std::endl
+              << "<dialog>" << std::endl;
+    for(auto &conversation : m_threadNodes) {
+        outputXML << "    <s>" << std::endl;
+        for(auto &utterance : conversation) {
+            outputXML << "        <utt>" << utterance->m_body << "</utt>" << std::endl;
+        }
+        outputXML << "    </s>" << std::endl;
+    }
+    outputXML << "</dialog>";
+    outputXML.close();
+    return true;
+}
+
 bool RedditTree::loadBuild(std::string fileName) {
     std::cout << ">> Converting comments to a forest" << std::endl;
     if(!_populate(fileName)) {
@@ -237,11 +260,13 @@ int main(int argc, char** argv) {
     // Create a reddit tree
     RedditTree redditTree;
     if(!redditTree.loadBuild(g_inputFileName)) {
-        std::cout << "Could not open input file or wrong JSON format" << std::endl;
         return 1;
     }
 
     // Generate XML
+    if(!redditTree.generateXML(g_outputFileName)) {
+        return 1;
+    }
 
     return 0;
 }
