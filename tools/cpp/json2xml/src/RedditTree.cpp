@@ -197,3 +197,15 @@ std::function<void(std::shared_ptr<RedditNode>)> RedditTree::WEIGHT_SHORTEST_PAT
         node->m_weight = maxHeight - 1;
     }
 };
+
+// Heuristic #2: Check shortest path
+std::function<void(std::shared_ptr<RedditNode>)> RedditTree::WEIGHT_SHORTEST_PATH_HIGEST_SCORE = [&](std::shared_ptr<RedditNode> node) {
+    if(node) {
+        int maxHeight = MAX_INPUT;
+        for(auto &child : node->m_childrenNodes) {
+            RedditTree::WEIGHT_SHORTEST_PATH(child);
+            maxHeight = std::min(maxHeight, child->m_weight);
+        }
+        node->m_weight = maxHeight - 1 + (std::atoi(node->m_score.c_str()));
+    }
+};

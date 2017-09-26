@@ -25,6 +25,9 @@ public:
     // Heuristic #2: Check shortest path
     static std::function<void(std::shared_ptr<RedditNode>)> WEIGHT_SHORTEST_PATH;
 
+    // Heuristic #3: Check shortest path and use highest score as tie breaker
+    static std::function<void(std::shared_ptr<RedditNode>)> WEIGHT_SHORTEST_PATH_HIGEST_SCORE;
+
     /**
      * Generate XML file based on the conversations
      */

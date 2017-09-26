@@ -16,8 +16,22 @@ void printUsage() {
     std::cout
             << "json2xml - Convert JSON of a specific format to XML" << std::endl << std::endl
             << "Usage: json2xml -i <input file> -o <output file>" << std::endl
-            << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
+            << "    -i, --input\t\t\tInput file" << std::endl
+            << "    -o, --output\t\tOutput file" << std::endl
             << "    -t, --template\t\tDisplay XML template" << std::endl
+            << "    -w, --weight\t\tAlgorithm used to set the nodes weights: (default=1)  2  3" << std::endl
+            << "                \t\t1) For every tree T in a forest F:" << std::endl
+            << "                \t\t     Select in T the longest path P" << std::endl
+            << "                \t\t     Add P to the list of conversations" << std::endl
+            << "                \t\t     For every node N in P:" << std::endl
+            << "                \t\t       For every child node C of N:" << std::endl
+            << "                \t\t         Add C to F" << std::endl
+            << "                \t\t2) For every tree T in a forest F:" << std::endl
+            << "                \t\t     Select in T the shortest path P" << std::endl
+            << "                \t\t     Add P to the list of conversations" << std::endl
+            << "                \t\t     For every node N in P:" << std::endl
+            << "                \t\t       For every child node C of N:" << std::endl
+            << "                \t\t         Add C to F" << std::endl
             << "    -s, --stat\t\t\tShow statistics" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
