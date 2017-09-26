@@ -56,6 +56,7 @@ void RedditTree::_linkNodes() {
     }
 }
 
+//TODO Rename this to _putWeight, and min=INT_MIN
 void RedditTree::_putHeights(std::shared_ptr<RedditNode> &root, bool max) {
     if(root) {
         int minMaxHeight = -1;
