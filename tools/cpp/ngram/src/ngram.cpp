@@ -161,7 +161,7 @@ void initParams(int argc, char *argv[], pugi::xml_document &doc, pugi::xml_parse
 
     struct option longOptions[] = {
             {"input", required_argument, 0, 'i'},
-            {"template", required_argument, 0, 't'},
+            {"template", no_argument, 0, 't'},
             {"counter", no_argument, 0, 'c'},
             {"insensitive", no_argument, 0, 'I'},
             {"word", no_argument, 0, 'w'},
