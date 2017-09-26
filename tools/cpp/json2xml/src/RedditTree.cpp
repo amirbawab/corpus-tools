@@ -81,7 +81,7 @@ void RedditTree::putWeights(std::function<void(std::shared_ptr<RedditNode> node)
     }
 }
 
-void RedditTree::buildConversations(int minSize, int maxSize) {
+void RedditTree::buildConversations(size_t minSize, size_t maxSize) {
     std::queue<std::shared_ptr<RedditNode>> queue;
 
     // Push all roots to the queue
