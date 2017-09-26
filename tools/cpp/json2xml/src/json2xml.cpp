@@ -4,14 +4,58 @@
 #include <algorithm>
 #include <queue>
 #include <climits>
+#include <unistd.h>
+#include <getopt.h>
 #include <json2xml/json2xml.h>
 
-void RedditTree::_populate(std::string fileName) {
+// Global variables
+std::string g_inputFileName;
+std::string g_outputFileName;
+
+/**
+ * Print program usage to stdout
+ */
+void printUsage() {
+    std::cout
+            << "json2xml - Convert JSON of a specific format to XML" << std::endl << std::endl
+            << "Usage: ngram [-i input|--]" << std::endl
+            << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
+            << "    -t, --template\t\tDisplay XML template" << std::endl
+            << "    -h, --help\t\t\tDisplay this help message" << std::endl;
+}
+
+/**
+ * Print JSON input file template to stdout
+ */
+void printXmlTemplate() {
+    std::cout
+            << "{" << std::endl
+            << "    \"reddit\": [" << std::endl
+            << "        {" << std::endl
+            << "             \"body\": \"\"," << std::endl
+            << "             \"author\": \"\"," << std::endl
+            << "             \"created_utc\": \"\"," << std::endl
+            << "             \"subreddit_id\": \"\"," << std::endl
+            << "             \"link_id\": \"\"," << std::endl
+            << "             \"parent_id\": \"\"," << std::endl
+            << "             \"score\": \"\"," << std::endl
+            << "             \"id\": \"\"" << std::endl
+            << "        }" << std::endl
+            << "    ]"  << std::endl
+            << "}" << std::endl;
+}
+
+bool RedditTree::_populate(std::string fileName) {
 
     // Load json file
     std::ifstream inputJson(fileName);
+    if(!inputJson.is_open()) {
+        return false;
+    }
     nlohmann::json jsonObj;
-    inputJson >> jsonObj;
+    if(inputJson >> jsonObj) {
+        return false;
+    }
 
     // Populate the reddit tree
     auto redditArray = jsonObj["reddit"];
@@ -37,6 +81,7 @@ void RedditTree::_populate(std::string fileName) {
         );
         m_redditNodes[redditNode->m_id] = redditNode;
     }
+    return true;
 }
 
 void RedditTree::_linkNodes() {
@@ -122,34 +167,81 @@ std::vector<std::shared_ptr<RedditNode>> RedditTree::_extractPath(std::shared_pt
     return nodes;
 }
 
-void RedditTree::loadBuild(std::string fileName) {
-    _populate(fileName);
+bool RedditTree::loadBuild(std::string fileName) {
+    std::cout << ">> Converting comments to a forest" << std::endl;
+    if(!_populate(fileName)) {
+        return false;
+    }
+
+    std::cout << ">> Linking parent and children nodes" << std::endl;
     _linkNodes();
+
+    std::cout << ">> Assigning weights to nodes" << std::endl;
     for(auto &rootNode : m_rootNodes) {
         _putHeights(rootNode, false);
     }
+
+    std::cout << ">> Building conversations" << std::endl;
     _makeThreads();
+    return true;
 }
 
-int main() {
+/**
+ * Initialize parameters
+ * @param argc
+ * @param argv
+ * @param doc
+ * @param res
+ */
+void initParams(int argc, char *argv[]) {
+
+    struct option longOptions[] = {
+            {"input", required_argument, 0, 'i'},
+            {"output", required_argument, 0, 'o'},
+            {"template", no_argument, 0, 't'},
+            {"help",   no_argument,       0, 'h'},
+            {0, 0,                        0, 0}
+    };
+
+    int optionIndex = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "hti:o:", longOptions, &optionIndex)) != -1) {
+        switch (c) {
+            case 'i':
+                g_inputFileName = optarg;
+                break;
+            case 'o':
+                g_outputFileName = optarg;
+                break;
+            case 't':
+                printXmlTemplate();
+                exit(0);
+            case 'h':
+            default:
+                break;
+        }
+    }
+}
+
+int main(int argc, char** argv) {
+
+    // Init params
+    initParams(argc, argv);
+
+    // Input and output are required
+    if(g_inputFileName.empty() || g_outputFileName.empty()) {
+        printUsage();
+        return 1;
+    }
 
     // Create a reddit tree
     RedditTree redditTree;
-    redditTree.loadBuild("/tmp/data/data.json");
-
-    // Print a thread
-    std::map<int, int> threadSize;
-    for(auto vec : redditTree.m_threadNodes) {
-        threadSize[vec.size()]++;
+    if(!redditTree.loadBuild(g_inputFileName)) {
+        std::cout << "Could not open input file or wrong JSON format" << std::endl;
+        return 1;
     }
 
-    for(auto pair : threadSize) {
-        std::cout << "Size " << pair.first << ": " << pair.second << std::endl;
-    }
-
-    // Build the reddit tree
-    std::cout << "Number of comments: " << redditTree.m_redditNodes.size() << std::endl;
-    std::cout << "Number of threads: " << redditTree.m_threadNodes.size() << std::endl;
+    // Generate XML
 
     return 0;
 }

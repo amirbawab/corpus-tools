@@ -31,11 +31,11 @@ public:
     std::map<std::string, std::shared_ptr<RedditNode>> m_redditNodes;
     std::vector<std::shared_ptr<RedditNode>> m_rootNodes;
     std::vector<std::vector<std::shared_ptr<RedditNode>>> m_threadNodes;
-    void loadBuild(std::string fileName);
+    bool loadBuild(std::string fileName);
 private:
     std::vector<std::shared_ptr<RedditNode>> _extractPath(std::shared_ptr<RedditNode> root);
     void _linkNodes();
-    void _populate(std::string fileName);
+    bool _populate(std::string fileName);
     void _makeThreads();
     void _putHeights(std::shared_ptr<RedditNode> &root, bool max);
 };

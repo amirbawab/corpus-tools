@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+# Set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Include thirdparty libraries header files
 # Note: Include must be done before add_subdirectory()
 include_directories(thirdparty/pugixml/src)
