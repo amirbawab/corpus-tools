@@ -5,4 +5,4 @@ set(JSON2XML_EXEC "json2xml")
 include_directories(include)
 
 # Add exectuable
-add_executable(${JSON2XML_EXEC} src/json2xml.cpp)
+add_executable(${JSON2XML_EXEC} src/RedditTree.cpp src/json2xml.cpp)
