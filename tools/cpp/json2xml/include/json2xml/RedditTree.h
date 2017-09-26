@@ -13,6 +13,9 @@ public:
     // Map all nodes to their unique id
     std::map<std::string, std::shared_ptr<RedditNode>> m_redditNodes;
 
+    // Map all authors
+    std::map<std::string, size_t> m_authorIds;
+
     // Store all the nodes that are root
     std::vector<std::shared_ptr<RedditNode>> m_rootNodes;
 

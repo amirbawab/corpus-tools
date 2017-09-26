@@ -45,7 +45,14 @@ bool RedditTree::load(std::string fileName) {
                 redditObject["score"],
                 redditObject["id"]
         );
+
+        // Store node in map
         m_redditNodes[redditNode->m_id] = redditNode;
+
+        // Store author
+        if(m_authorIds.find(redditNode->m_author) == m_authorIds.end()) {
+            m_authorIds[redditNode->m_author] = m_authorIds.size()+1;
+        }
     }
     return true;
 }
@@ -163,7 +170,8 @@ bool RedditTree::generateXML(std::string fileName) {
     for(auto &conversation : m_conversationNodes) {
         outputXML << "    <s>" << std::endl;
         for(auto &utterance : conversation) {
-            outputXML << "        <utt>" << utterance->m_body << "</utt>" << std::endl;
+            outputXML << "        <utt uid=\"" << m_authorIds[utterance->m_author] << "\">"
+                      << utterance->m_body << "</utt>" << std::endl;
         }
         outputXML << "    </s>" << std::endl;
     }
