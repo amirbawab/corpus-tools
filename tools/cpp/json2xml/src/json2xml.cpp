@@ -11,6 +11,7 @@
 // Global variables
 std::string g_inputFileName;
 std::string g_outputFileName;
+bool g_showStat = false;
 
 /**
  * Print program usage to stdout
@@ -21,6 +22,7 @@ void printUsage() {
             << "Usage: json2xml -i <input file> -o <output file>" << std::endl
             << "    -i, --input\t\t\tInput file. Use -- for stdin" << std::endl
             << "    -t, --template\t\tDisplay XML template" << std::endl
+            << "    -s, --stat\t\t\tShow statistics" << std::endl
             << "    -h, --help\t\t\tDisplay this help message" << std::endl;
 }
 
@@ -45,7 +47,7 @@ void printXmlTemplate() {
             << "}" << std::endl;
 }
 
-bool RedditTree::_populate(std::string fileName) {
+bool RedditTree::load(std::string fileName) {
 
     // Load json file
     std::ifstream inputJson(fileName);
@@ -86,7 +88,7 @@ bool RedditTree::_populate(std::string fileName) {
     return true;
 }
 
-void RedditTree::_linkNodes() {
+void RedditTree::linkNodes() {
 
     // Link the nodes
     for(auto redditNodePair : m_redditNodes) {
@@ -103,26 +105,14 @@ void RedditTree::_linkNodes() {
     }
 }
 
-//TODO Rename this to _putWeight, and min=INT_MIN
-void RedditTree::_putHeights(std::shared_ptr<RedditNode> &root, bool max) {
-    if(root) {
-        int minMaxHeight = -1;
-        if(!max) {
-            minMaxHeight = INT_MAX;
-        }
-        for(auto &child : root->m_childrenNodes) {
-            _putHeights(child, max);
-            if(max) {
-                minMaxHeight = std::max(minMaxHeight, child->m_height);
-            } else {
-                minMaxHeight = std::min(minMaxHeight, child->m_height);
-            }
-        }
-        root->m_height = minMaxHeight + 1;
+void RedditTree::putWeights(std::function<void(std::shared_ptr<RedditNode> node)> weightFunction) {
+    // Run passed function on all the root nodes (root node of each tree in the forest)
+    for(std::shared_ptr<RedditNode> &node : m_rootNodes) {
+        weightFunction(node);
     }
 }
 
-void RedditTree::_makeThreads() {
+void RedditTree::buildConversations() {
     std::queue<std::shared_ptr<RedditNode>> queue;
 
     // Push all roots to the queue
@@ -141,7 +131,7 @@ void RedditTree::_makeThreads() {
         std::vector<std::shared_ptr<RedditNode>> path = _extractPath(front);
 
         // Add longest path to the threads
-        m_threadNodes.push_back(path);
+        m_conversationNodes.push_back(path);
 
         // Note: The last node in the path should not have any children, otherwise
         // there exist a path that is longer then the current extracted one.
@@ -157,13 +147,24 @@ void RedditTree::_makeThreads() {
 
 std::vector<std::shared_ptr<RedditNode>> RedditTree::_extractPath(std::shared_ptr<RedditNode> root) {
     std::vector<std::shared_ptr<RedditNode>> nodes;
+
+    // The current node is part of the path
     nodes.push_back(root);
+
+    // While a leaf node was not added to the path
     while (!nodes.back()->m_childrenNodes.empty()) {
-        for(size_t i=0; i < nodes.back()->m_childrenNodes.size(); i++) {
-            if(nodes.back()->m_childrenNodes[i]->m_height == nodes.back()->m_height-1) {
-                nodes.push_back(nodes.back()->m_childrenNodes[i]);
-                break;
+
+        // Iterate over all children nodes
+        std::shared_ptr<RedditNode> selectedChild = nullptr;
+        for(std::shared_ptr<RedditNode> &childNode : nodes.back()->m_childrenNodes) {
+            if(selectedChild == nullptr || childNode->m_weight > selectedChild->m_weight) {
+                selectedChild = childNode;
             }
+        }
+
+        // If a child was selected
+        if(selectedChild != nullptr) {
+            nodes.push_back(selectedChild);
         }
     }
     return nodes;
@@ -176,9 +177,27 @@ bool RedditTree::generateXML(std::string fileName) {
         std::cerr << "Could not open output file" << std::endl;
         return false;
     }
-    outputXML << "<?xml version=\"1.0\"?>" << std::endl
-              << "<dialog>" << std::endl;
-    for(auto &conversation : m_threadNodes) {
+    outputXML << "<?xml version=\"1.0\"?>" << std::endl;
+    outputXML<< "<dialog>" << std::endl;
+
+    // Add statistics tag
+    if(g_showStat) {
+
+        // Computer the number of conversations
+        std::map<int, int> conversationSizeMap;
+        for(const auto &conversation : m_conversationNodes) {
+            conversationSizeMap[conversation.size()]++;
+        }
+
+        outputXML << "    <statistics total=\"" << m_conversationNodes.size() << "\">" << std::endl;
+        for(auto conversationPair : conversationSizeMap) {
+            outputXML << "        <conversation size=\"" << conversationPair.first
+                      << "\" count=\"" << conversationPair.second << "\"/>" << std::endl;
+        }
+        outputXML << "    </statistics>" << std::endl;
+    }
+
+    for(auto &conversation : m_conversationNodes) {
         outputXML << "    <s>" << std::endl;
         for(auto &utterance : conversation) {
             outputXML << "        <utt>" << utterance->m_body << "</utt>" << std::endl;
@@ -187,25 +206,6 @@ bool RedditTree::generateXML(std::string fileName) {
     }
     outputXML << "</dialog>";
     outputXML.close();
-    return true;
-}
-
-bool RedditTree::loadBuild(std::string fileName) {
-    std::cout << ">> Converting comments to a forest" << std::endl;
-    if(!_populate(fileName)) {
-        return false;
-    }
-
-    std::cout << ">> Linking parent and children nodes" << std::endl;
-    _linkNodes();
-
-    std::cout << ">> Assigning weights to nodes" << std::endl;
-    for(auto &rootNode : m_rootNodes) {
-        _putHeights(rootNode, false);
-    }
-
-    std::cout << ">> Building conversations" << std::endl;
-    _makeThreads();
     return true;
 }
 
@@ -221,6 +221,7 @@ void initParams(int argc, char *argv[]) {
     struct option longOptions[] = {
             {"input", required_argument, 0, 'i'},
             {"output", required_argument, 0, 'o'},
+            {"stat", no_argument, 0, 's'},
             {"template", no_argument, 0, 't'},
             {"help",   no_argument,       0, 'h'},
             {0, 0,                        0, 0}
@@ -228,13 +229,16 @@ void initParams(int argc, char *argv[]) {
 
     int optionIndex = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "hti:o:", longOptions, &optionIndex)) != -1) {
+    while ((c = getopt_long(argc, argv, "htsi:o:", longOptions, &optionIndex)) != -1) {
         switch (c) {
             case 'i':
                 g_inputFileName = optarg;
                 break;
             case 'o':
                 g_outputFileName = optarg;
+                break;
+            case 's':
+                g_showStat = true;
                 break;
             case 't':
                 printXmlTemplate();
@@ -259,9 +263,34 @@ int main(int argc, char** argv) {
 
     // Create a reddit tree
     RedditTree redditTree;
-    if(!redditTree.loadBuild(g_inputFileName)) {
-        return 1;
+
+    std::cout << ">> Convert JSON object to class objects" << std::endl;
+    if(!redditTree.load(g_inputFileName)) {
+        return false;
     }
+
+    std::cout << ">> Linking parent and children nodes" << std::endl;
+    redditTree.linkNodes();
+
+    std::cout << ">> Assigning weights to nodes" << std::endl;
+
+    // Heuristic #1: Check longest path
+    std::function<void(std::shared_ptr<RedditNode>)> longestPath = [&](std::shared_ptr<RedditNode> node) {
+        if(node) {
+            int maxHeight = -1;
+            for(auto &child : node->m_childrenNodes) {
+                longestPath(child);
+                maxHeight = std::max(maxHeight, child->m_weight);
+            }
+            node->m_weight = maxHeight + 1;
+       }
+    };
+
+    // Assign weight for all nodes
+    redditTree.putWeights(longestPath);
+
+    std::cout << ">> Building conversations" << std::endl;
+    redditTree.buildConversations();
 
     // Generate XML
     if(!redditTree.generateXML(g_outputFileName)) {

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <functional>
 
 class RedditNode {
 public:
@@ -21,22 +22,53 @@ public:
     std::string m_id;
     std::shared_ptr<RedditNode> m_parentNode;
     std::vector<std::shared_ptr<RedditNode>> m_childrenNodes;
-    int m_height = 0;
+    int m_weight = 0;
     bool isRoot() const {return m_linkId == m_parentId;}
     bool isLeaf() const {return m_childrenNodes.empty();}
 };
 
 class RedditTree {
 public:
+
+    // Map all nodes to their unique id
     std::map<std::string, std::shared_ptr<RedditNode>> m_redditNodes;
+
+    // Store all the nodes that are root
     std::vector<std::shared_ptr<RedditNode>> m_rootNodes;
-    std::vector<std::vector<std::shared_ptr<RedditNode>>> m_threadNodes;
-    bool loadBuild(std::string fileName);
+
+    // Store conversations
+    std::vector<std::vector<std::shared_ptr<RedditNode>>> m_conversationNodes;
+
+    /**
+     * Generate XML file based on the conversations
+     */
     bool generateXML(std::string fileName);
+
+    /**
+     * Link parent and children nodes
+     */
+    void linkNodes();
+
+    /**
+     * Load JSON file into nodes
+     */
+    bool load(std::string fileName);
+
+    /**
+     * Build conversations
+     */
+    void buildConversations();
+
+    /**
+     * Assign weights to nodes
+     */
+    void putWeights(std::function<void(std::shared_ptr<RedditNode> node)> weightFunction);
 private:
+
+    /**
+     * Extract path from a given tree
+     * Note: When extracting a conversation path from a tree,
+     * the child with the HIGHEST weight will be selected
+     */
     std::vector<std::shared_ptr<RedditNode>> _extractPath(std::shared_ptr<RedditNode> root);
-    void _linkNodes();
-    bool _populate(std::string fileName);
-    void _makeThreads();
-    void _putHeights(std::shared_ptr<RedditNode> &root, bool max);
 };
