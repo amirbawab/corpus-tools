@@ -1,7 +1,8 @@
 import csv
 import copy
 import re
-from dataset import *
+
+from tools.python.xml.dataset import *
 
 parents = set()
 thread_by_id = dict()
@@ -15,7 +16,7 @@ thread_by_id = dict()
 # 18. distinguished 19. author_flair_css_class 20. removal_reason
 
 rows = 1
-with open('reddit_france.csv', 'rb') as f:
+with open('reddit_france.csv', 'rt') as f:
     reader = csv.reader(f)
     for row in reader:
         comment_id = row[15]
@@ -34,7 +35,7 @@ processed = 0
 total_rows = len(thread_by_id)
 # Remove comments with no parents and no children
 print("Filtering singletons...")
-for thread in thread_by_id.keys():
+for thread in list(thread_by_id):
     comment = thread_by_id[thread][0]
     processed += 1
     if processed % 100000 == 0:
@@ -107,5 +108,5 @@ for thread in full_threads:
         # If valid utterance
         conversation.addUtterance(dialog.getSpeakerId(comment[4].__hash__()), body)
 
-f = open('francais.xml', 'w+')
-f.write(dialog.toXML())
+with open('francais.xml', 'w+') as f:
+    f.write(dialog.toXML())
