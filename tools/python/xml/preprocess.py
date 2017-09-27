@@ -31,6 +31,7 @@ if __name__ == "__main__":
         end_idx = ln[9:].find("\",\"author\":\"")
         prefix = ln[0:9]
         body: str = ln[9:end_idx]
+        tail = ln[end_idx:]
         stats.total += 1
 
         is_a_bot = body.__contains__("I am a bot")
@@ -58,8 +59,7 @@ if __name__ == "__main__":
         low_french = languages[0].prob < args.frenchThreshold
         if(low_french): stats.low_french += 1; continue
 
-        output_line = prefix + sanitized + "\n"
-
+        output_line = prefix + sanitized + tail
         sys.stdout.write(output_line)
 
     with open('filter.log', 'w') as log_file:
