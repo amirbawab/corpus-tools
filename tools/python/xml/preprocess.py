@@ -47,7 +47,11 @@ if __name__ == "__main__":
         is_empty = sanitized.strip() == ""
         if (is_empty): stats.empties += 1; continue
 
-        languages = detect_langs(sanitized)
+        try:
+            languages = detect_langs(sanitized)
+        except:
+            stats.non_french += 1; continue
+
         not_french = languages[0].lang != 'fr'
         if (not_french): stats.discards.append(sanitized); stats.non_french += 1; continue
 
