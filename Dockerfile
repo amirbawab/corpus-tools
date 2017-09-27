@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 RUN apt-get update
-RUN apt-get install wget curl git cmake build-essential -y
+RUN apt-get install vim wget curl git cmake build-essential -y
 COPY . /ML
 WORKDIR /ML
 
