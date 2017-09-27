@@ -21,6 +21,4 @@ public:
     std::shared_ptr<RedditNode> m_parentNode;
     std::vector<std::shared_ptr<RedditNode>> m_childrenNodes;
     int m_weight = 0;
-    bool isRoot() const {return m_linkId == m_parentId;}
-    bool isLeaf() const {return m_childrenNodes.empty();}
 };

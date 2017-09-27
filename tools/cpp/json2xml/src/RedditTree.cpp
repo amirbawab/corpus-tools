@@ -63,12 +63,11 @@ void RedditTree::linkNodes() {
     for(auto redditNodePair : m_redditNodes) {
 
         // If parent is found, build connection
-        if(!redditNodePair.second->isRoot() &&
-           m_redditNodes.find(redditNodePair.second->m_parentId) != m_redditNodes.end()){
+        if(m_redditNodes.find(redditNodePair.second->m_parentId) != m_redditNodes.end()){
             std::shared_ptr<RedditNode> parentNode = m_redditNodes[redditNodePair.second->m_parentId];
             parentNode->m_childrenNodes.push_back(redditNodePair.second);
             redditNodePair.second->m_parentNode = parentNode;
-        } else if(redditNodePair.second->isRoot() || !redditNodePair.second->m_parentNode) {
+        } else {
             m_rootNodes.push_back(redditNodePair.second);
         }
     }
@@ -159,12 +158,12 @@ bool RedditTree::generateXML(std::string fileName) {
             conversationSizeMap[conversation.size()]++;
         }
 
-        outputXML << "    <statistics total=\"" << m_conversationNodes.size() << "\">" << std::endl;
+        outputXML << "    <conversations total=\"" << m_conversationNodes.size() << "\">" << std::endl;
         for(auto conversationPair : conversationSizeMap) {
             outputXML << "        <conversation size=\"" << conversationPair.first
                       << "\" count=\"" << conversationPair.second << "\"/>" << std::endl;
         }
-        outputXML << "    </statistics>" << std::endl;
+        outputXML << "    </conversations>" << std::endl;
     }
 
     for(auto &conversation : m_conversationNodes) {
