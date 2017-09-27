@@ -27,10 +27,10 @@ class Stats:
 if __name__ == "__main__":
     stats = Stats()
     for line in sys.stdin:
-        ln: str = line
+        ln = line
         end_idx = ln[9:].find("\",\"author\":\"")
         prefix = ln[0:9]
-        body: str = ln[9:end_idx]
+        body = ln[9:end_idx]
         tail = ln[end_idx:]
         stats.total += 1
 
