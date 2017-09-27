@@ -14,8 +14,7 @@ g_finalXML="/tmp/data.xml"
 # Load JSON
 echo "Starting the pipeline"
 echo ">> Select JSON file to process: "
-#read jsonFile
-jsonFile="/tmp/json/raw/french_comments_part.json"
+read jsonFile
 
 # Fix JSON syntax
 echo 
