@@ -36,15 +36,15 @@ if __name__ == "__main__":
         tail = ln[end_idx:]
         stats.total += 1
 
-        if (stats.total % 10000 == 0): print("Processed: " + str(stats.total), file=sys.stderr)
+        if stats.total % 10000 == 0: print("Processed: " + str(stats.total), file=sys.stderr)
 
         is_a_bot = body.__contains__("I am a bot") or body.__contains__("I'm a bot")
-        if (is_a_bot): stats.removed += 1; continue
+        if is_a_bot: stats.removed += 1; continue
 
         is_removed = body.__contains__("[deleted]")
-        if (is_removed): stats.removed += 1; continue
+        if is_removed: stats.removed += 1; continue
         is_deleted = body.__contains__("[removed]")
-        if (is_deleted): stats.deleted += 1; continue
+        if is_deleted: stats.deleted += 1; continue
 
         sanitized = re.sub(r"\\u0026gt;.*?\\n\\n", "", body)
         sanitized = re.sub(r"\\n", "", sanitized)
@@ -59,10 +59,10 @@ if __name__ == "__main__":
             continue
 
         not_french = languages[0].lang != 'fr'
-        if (not_french): stats.discards.append(sanitized); stats.non_french += 1; continue
+        if not_french: stats.discards.append(sanitized); stats.non_french += 1; continue
 
         low_french = languages[0].prob < args.frenchThreshold
-        if (low_french): stats.low_french += 1; continue
+        if low_french: stats.low_french += 1; continue
 
         output_line = prefix + sanitized + tail
         sys.stdout.write(output_line)
