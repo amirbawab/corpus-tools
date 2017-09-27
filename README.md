@@ -1,2 +1,3 @@
-# project-1
-COMP551 - Project 1
+# Corpus tools
+
+Tools and scripts for parsing and analyzing Reddit comments from Google Clouds - Big Query
