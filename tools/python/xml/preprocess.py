@@ -41,10 +41,10 @@ if __name__ == "__main__":
         is_a_bot = body.__contains__("I am a bot") or body.__contains__("I'm a bot")
         if is_a_bot: stats.removed += 1; continue
 
-        is_removed = body.__contains__("[deleted]")
-        if is_removed: stats.removed += 1; continue
-        is_deleted = body.__contains__("[removed]")
+        is_deleted = body.__contains__("[deleted]")
         if is_deleted: stats.deleted += 1; continue
+        is_removed = body.__contains__("[removed]")
+        if is_removed: stats.removed += 1; continue
 
         sanitized = re.sub(r"\\u0026gt;.*?\\n\\n", "", body)
         sanitized = re.sub(r"\\n", "", sanitized)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         if (is_empty): stats.empties += 1; continue
 
         try:
-            languages = detect_langs(sanitized)
+            languages = detect_langs(sanitized[0:50])
         except:
             stats.non_french += 1
             continue
