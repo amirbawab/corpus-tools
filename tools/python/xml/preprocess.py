@@ -11,7 +11,6 @@ parser.add_argument('--frenchThreshold', type=float, default=0.8,
                     help='Lowest ratio of French to non-French text. Enter a value between 0 and 1.')
 args = parser.parse_args()
 
-
 class Stats:
     """Filtering stats"""
 
@@ -24,7 +23,6 @@ class Stats:
         self.empties = 0
         self.non_french = 0
         self.low_french = 0
-        self.discards = list()
 
 if __name__ == "__main__":
     stats = Stats()
@@ -56,7 +54,7 @@ if __name__ == "__main__":
             continue
 
         not_french = languages[0].lang != 'fr'
-        if not_french: stats.discards.append(body); stats.non_french += 1; continue
+        if not_french: stats.non_french += 1; continue
 
         low_french = languages[0].prob < args.frenchThreshold
         if low_french: stats.low_french += 1; continue
@@ -64,5 +62,5 @@ if __name__ == "__main__":
         output_line = prefix + body + tail
         sys.stdout.write(output_line)
 
-    with open('filter.log', 'w') as log_file:
+    with open('filter.log', 'a') as log_file:
         log_file.write(json.dumps(stats.__dict__))
