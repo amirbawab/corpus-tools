@@ -27,11 +27,7 @@ echo ">>>> Generating new JSON file"
 # Start preprocessing the data
 echo 
 echo ">> Pre-processing JSON file ..."
-echo ">>>> Delete lines matching [deleted] or [removed] ..."
-sed -i '/\[\(deleted\|removed\)\]/d' "${g_fixedJSON}"
-echo ">>>> Delete lines matching 'I am a bot' or 'I'm a bot'"
-sed -i '/I am a bot/d' "${g_fixedJSON}"
-sed -i "/I'm a bot/d" "${g_fixedJSON}"
+cat "${g_fixedJSON}" | python3 ./tools/python/xml/preprocess.py --frenchThreshold 0.8
 echo ">>>> Remove links"
 echo "TO BE ADDED"
 echo ">>>> Remove post quotes"
