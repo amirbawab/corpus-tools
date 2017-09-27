@@ -22,9 +22,9 @@ with open('reddit_france.csv', 'rt') as f:
         comment_id = row[15]
         thread_by_id[comment_id] = list([row])
         parent_id = row[10][3:]
-        if (parent_id != comment_id):
+        if parent_id != comment_id:
             parents.add(parent_id)
-        if (rows % 100000 == 0):
+        if rows % 100000 == 0:
             print("Processed " + str(rows) + " comments...")
         rows += 1
 
@@ -42,7 +42,7 @@ for thread in list(thread_by_id):
         print("Processed " + str(processed) + " comments...")
     comment_id = comment[15]
     parent_id = comment[10][3:]
-    if (comment_id not in parents and parent_id not in thread_by_id):
+    if comment_id not in parents and parent_id not in thread_by_id:
         thread_by_id.__delitem__(thread)
         removed += 1
 
@@ -63,7 +63,7 @@ def merge_threads():
             parent_of_op = op[10][3:]
             op_is_topmost_parent_in_thread = parent_of_op not in parents
             last_comment_has_no_children = comment_id not in parents
-            if (op_is_topmost_parent_in_thread and last_comment_has_no_children):
+            if op_is_topmost_parent_in_thread and last_comment_has_no_children:
                 full_threads.append(new_current_thread)
                 thread_by_id.__delitem__(comment_id)
             else:
