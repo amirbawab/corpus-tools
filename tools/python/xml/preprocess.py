@@ -30,7 +30,7 @@ if __name__ == "__main__":
     stats = Stats()
     for line in sys.stdin:
         ln = line
-        end_idx = ln[9:].find("\",\"author\":\"")
+        end_idx = ln[9:].find('","author":"')
         prefix = ln[0:9]
         body = ln[9:end_idx]
         tail = ln[end_idx:]
@@ -46,25 +46,22 @@ if __name__ == "__main__":
         is_removed = body.__contains__("[removed]")
         if is_removed: stats.removed += 1; continue
 
-        sanitized = re.sub(r"\\u0026gt;.*?\\n\\n", "", body)
-        sanitized = re.sub(r"\\n", "", sanitized)
-
-        is_empty = sanitized.strip() == ""
+        is_empty = body.strip() == ""
         if (is_empty): stats.empties += 1; continue
 
         try:
-            languages = detect_langs(sanitized[0:50])
+            languages = detect_langs(body[0:50])
         except:
             stats.non_french += 1
             continue
 
         not_french = languages[0].lang != 'fr'
-        if not_french: stats.discards.append(sanitized); stats.non_french += 1; continue
+        if not_french: stats.discards.append(body); stats.non_french += 1; continue
 
         low_french = languages[0].prob < args.frenchThreshold
         if low_french: stats.low_french += 1; continue
 
-        output_line = prefix + sanitized + tail
+        output_line = prefix + body + tail
         sys.stdout.write(output_line)
 
     with open('filter.log', 'w') as log_file:
