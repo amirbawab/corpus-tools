@@ -32,9 +32,11 @@ sed -i '/\[\(deleted\|removed\)\]/d' "${g_fixedJSON}"
 echo ">>>> Delete lines matching 'I am a bot' or 'I'm a bot'"
 sed -i '/I am a bot/d' "${g_fixedJSON}"
 sed -i "/I'm a bot/d" "${g_fixedJSON}"
+echo ">>>> Remove links"
+echo "TO BE ADDED"
 echo ">>>> Remove post quotes"
 echo "TO BE ADDED"
-echo ">>>> Removing non-french sentences ..."
+echo ">>>> Remove non-french sentences ..."
 echo "TO BE ADDED"
 
 # Start the converting the data from JSON to XML
