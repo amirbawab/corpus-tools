@@ -11,8 +11,10 @@ parser.add_argument('--frenchThreshold', type=float, default=0.8,
                     help='Lowest ratio of French to non-French text. Enter a value between 0 and 1.')
 args = parser.parse_args()
 
+
 class Stats:
     """Filtering stats"""
+
     def __init__(self):
         """Initialize an Utterance"""
         self.bots = 0
@@ -51,13 +53,16 @@ if __name__ == "__main__":
         try:
             languages = detect_langs(sanitized)
         except:
-            stats.non_french += 1; continue
+            stats.non_french += 1;
+            continue
 
         not_french = languages[0].lang != 'fr'
         if (not_french): stats.discards.append(sanitized); stats.non_french += 1; continue
 
         low_french = languages[0].prob < args.frenchThreshold
-        if(low_french): stats.low_french += 1; continue
+        if (low_french): stats.low_french += 1; continue
+
+        if (stats.total % 10000): print("Processed: " + str(stats.total), file=sys.stderr)
 
         output_line = prefix + sanitized + tail
         sys.stdout.write(output_line)
