@@ -34,7 +34,7 @@ if __name__ == "__main__":
         tail = ln[end_idx:]
         stats.total += 1
 
-        is_a_bot = body.__contains__("I am a bot")
+        is_a_bot = body.__contains__("I am a bot") or body.__contains__("I'm a bot")
         if (is_a_bot): stats.removed += 1; continue
 
         is_removed = body.__contains__("[deleted]")
