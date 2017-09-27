@@ -62,7 +62,7 @@ if __name__ == "__main__":
         low_french = languages[0].prob < args.frenchThreshold
         if (low_french): stats.low_french += 1; continue
 
-        if (stats.total % 10000): print("Processed: " + str(stats.total), file=sys.stderr)
+        if (stats.total % 10000 == 0): print("Processed: " + str(stats.total), file=sys.stderr)
 
         output_line = prefix + sanitized + tail
         sys.stdout.write(output_line)
