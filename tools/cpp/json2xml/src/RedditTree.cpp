@@ -168,19 +168,27 @@ bool RedditTree::generateXML(std::string fileName) {
             utterancesCount+=conversation.size();
         }
 
-        outputXML << "    <statistics conversations=\"" << m_conversationNodes.size()
+        outputXML << "<!--" << std::endl
+                  << "    <statistics conversations=\"" << m_conversationNodes.size()
                   << "\" utterances=\"" << utterancesCount << "\">" << std::endl;
         for(auto conversationPair : conversationSizeMap) {
             outputXML << "        <conversation size=\"" << conversationPair.first
                       << "\" count=\"" << conversationPair.second << "\"/>" << std::endl;
         }
-        outputXML << "    </statistics>" << std::endl;
+        outputXML << "    </statistics>" << std::endl
+                  << "-->" << std::endl;
     }
 
     for(auto &conversation : m_conversationNodes) {
-        outputXML << "    <s>" << std::endl;
+        if(conversation.empty()) {
+            throw std::runtime_error("A conversation cannot be empty!");
+        }
+        outputXML << "    <s linked_id=\"" << conversation.front()->m_linkId << "\">" << std::endl;
         for(auto &utterance : conversation) {
-            outputXML << "        <utt uid=\"" << m_authorIds[utterance->m_author] << "\">"
+            outputXML << "        <utt uid=\"" << m_authorIds[utterance->m_author] << "\" comment_id=\""
+                      << utterance->m_id << "\" parent_id=\"" << utterance->m_parentId << "\" score=\""
+                      << utterance->m_score << "\" create_utc=\"" << utterance->m_createdUtc << "\" subreddit_id=\""
+                      << utterance->m_subredditId << "\" >"
                       << utterance->m_body << "</utt>" << std::endl;
         }
         outputXML << "    </s>" << std::endl;
