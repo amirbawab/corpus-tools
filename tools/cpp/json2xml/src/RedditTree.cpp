@@ -154,16 +154,19 @@ bool RedditTree::generateXML(std::string fileName) {
 
         // Computer the number of conversations
         std::map<int, int> conversationSizeMap;
+        int utterancesCount = 0;
         for(const auto &conversation : m_conversationNodes) {
             conversationSizeMap[conversation.size()]++;
+            utterancesCount+=conversation.size();
         }
 
-        outputXML << "    <conversations total=\"" << m_conversationNodes.size() << "\">" << std::endl;
+        outputXML << "    <statistics conversations=\"" << m_conversationNodes.size()
+                  << "\" utterances=\"" << utterancesCount << "\">" << std::endl;
         for(auto conversationPair : conversationSizeMap) {
             outputXML << "        <conversation size=\"" << conversationPair.first
                       << "\" count=\"" << conversationPair.second << "\"/>" << std::endl;
         }
-        outputXML << "    </conversations>" << std::endl;
+        outputXML << "    </statistics>" << std::endl;
     }
 
     for(auto &conversation : m_conversationNodes) {

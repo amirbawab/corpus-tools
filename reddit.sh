@@ -41,7 +41,7 @@ echo "TO BE ADDED"
 # Start the converting the data from JSON to XML
 echo
 echo ">> Converting JSON to XML (this might take few minutes...)"
-./tools/cpp/bin/json2xml -i "${g_fixedJSON}" -o "${g_finalXML}" -m 2 -s
+./tools/cpp/bin/json2xml -i "${g_fixedJSON}" -o "${g_finalXML}" -m 2
 
 # End message
 echo "!!!End of pipeline!!!"
