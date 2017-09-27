@@ -26,6 +26,41 @@
             "title": "Demo links"
         },
         {
+            "location": "/docker/",
+            "text": "Docker\n\n\nStep by step\n\n\nClone repository\n\n\ngit clone https://github.com/amirbawab/corpus-tools\n\n\n\n\nBuild docker image\n\n\nsudo docker build -t reddit:latest .\n\n\n\n\nStart instance\n\n\nsudo docker start --name reddit-container -it reddit:latest\n\n\n\n\nStart pipeline\n\n\nFrom container\n\n\n./reddit.sh\n# Use the file: french_comments_part.json\n\n\n\n\nNote: On the google cloud, you can use the large file",
+            "title": "Docker"
+        },
+        {
+            "location": "/docker/#docker",
+            "text": "",
+            "title": "Docker"
+        },
+        {
+            "location": "/docker/#step-by-step",
+            "text": "",
+            "title": "Step by step"
+        },
+        {
+            "location": "/docker/#clone-repository",
+            "text": "git clone https://github.com/amirbawab/corpus-tools",
+            "title": "Clone repository"
+        },
+        {
+            "location": "/docker/#build-docker-image",
+            "text": "sudo docker build -t reddit:latest .",
+            "title": "Build docker image"
+        },
+        {
+            "location": "/docker/#start-instance",
+            "text": "sudo docker start --name reddit-container -it reddit:latest",
+            "title": "Start instance"
+        },
+        {
+            "location": "/docker/#start-pipeline",
+            "text": "From container  ./reddit.sh\n# Use the file: french_comments_part.json  Note: On the google cloud, you can use the large file",
+            "title": "Start pipeline"
+        },
+        {
             "location": "/ngram/",
             "text": "Ngram\n\n\nIntroduction\n\n\nNgram is a command line based program which takes a list of conversations and a word as input, and outputs\nthe word that could possible follow the provided one. The current release of the this tool builds an Ngram \ntable where N = 2, also called Bigram.\n\n\nBuild the tool\n\n\n\n\nClone repository\n\n\nClone submodules \ngit clone submodule update --init --recursive\n\n\nGo the tool directory \ncd tools/ngram/\n\n\nBuild the tool \ncmake . && make\n\n\n\n\nHow to use Ngram tool?\n\n\nNgram provides output on request. The information displayed on the console can be controlled using the flags\nand arguments that are passed to the program. In the output, the strings \n<s>\n and \n</s>\n denote the \nbeginning and the end of a sentence.\n\n\nNote: Use the \n-h\n or \n--help\n flags to learn more about the latest functionalities of the tool.\n\n\nHow does it work?\n\n\nThe Ngram tool stores a Bigram table and a Word occurence vector. The two latter are used to guess what are\nthe possible words that could follow the provided one.\n\n\nBigram table\n\n\nThe Bigram table is a lookup table that keeps track of the number of times the word W\ni\n occurres \nbefore W\ni+1\n.\n\n\nWord occurence\n\n\nThe Word occurence vector keeps track of how many times a word occurred in the provided conversations.\n\n\nGuess the next word\n\n\nUsing the Bigram table and the word occurence vector, W\ni+1\n can be guessed:\n\nP(W\ni+1\n | W\ni\n) = Count(W\ni\n, W\ni+1\n) / Count(W\ni\n)\n\n\nNote: The program will print all the possible words sorted by their probabilities.\n\n\nExamples\n\n\nExample 1\n\n\n$ cat dataset.xml | ./ngram -i -- -c -w \"<s>\" -T 0.2\nNgram table\n-----------\ncount(<s>, Hey) = 1\ncount(<s>, I\u2019m) = 1\ncount(<s>, Me) = 2\ncount(<s>, Nice) = 1\ncount(<s>, Who\u2019s) = 1\ncount(Hey, how) = 1\ncount(I\u2019m, fine) = 1\ncount(Me, </s>) = 1\ncount(Me, too) = 1\ncount(Nice, </s>) = 1\ncount(Who\u2019s, around) = 1\ncount(are, you) = 1\ncount(around, for) = 1\ncount(fine, thank) = 1\ncount(for, lunch) = 1\ncount(how, are) = 1\ncount(lunch, </s>) = 1\ncount(thank, you) = 1\ncount(too, </s>) = 1\ncount(you, </s>) = 2\n---\n\nNgram word occurrence\n---------------------\ncount(</s>) = 6\ncount(<s>) = 6\ncount(Hey) = 1\ncount(I\u2019m) = 1\ncount(Me) = 2\ncount(Nice) = 1\ncount(Who\u2019s) = 1\ncount(are) = 1\ncount(around) = 1\ncount(fine) = 1\ncount(for) = 1\ncount(how) = 1\ncount(lunch) = 1\ncount(thank) = 1\ncount(too) = 1\ncount(you) = 2\n---\n\nPossible word(s) after <s>\n---------------------\nP(Me | <s>) = 0.333333\n\n\n\n\nExample 2\n\n\n$ cat dataset.xml | ./ngram -i -- -c -w \"hey\" -I\nNgram table\n-----------\ncount(<s>, hey) = 1\ncount(<s>, i\u2019m) = 1\ncount(<s>, me) = 2\ncount(<s>, nice) = 1\ncount(<s>, who\u2019s) = 1\ncount(are, you) = 1\ncount(around, for) = 1\ncount(fine, thank) = 1\ncount(for, lunch) = 1\ncount(hey, how) = 1\ncount(how, are) = 1\ncount(i\u2019m, fine) = 1\ncount(lunch, </s>) = 1\ncount(me, </s>) = 1\ncount(me, too) = 1\ncount(nice, </s>) = 1\ncount(thank, you) = 1\ncount(too, </s>) = 1\ncount(who\u2019s, around) = 1\ncount(you, </s>) = 2\n---\n\nNgram word occurrence\n---------------------\ncount(</s>) = 6\ncount(<s>) = 6\ncount(are) = 1\ncount(around) = 1\ncount(fine) = 1\ncount(for) = 1\ncount(hey) = 1\ncount(how) = 1\ncount(i\u2019m) = 1\ncount(lunch) = 1\ncount(me) = 2\ncount(nice) = 1\ncount(thank) = 1\ncount(too) = 1\ncount(who\u2019s) = 1\ncount(you) = 2\n---\n\nPossible word(s) after hey\n---------------------\nP(how | hey) = 1",
             "title": "Ngram"
