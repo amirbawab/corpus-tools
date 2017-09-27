@@ -34,10 +34,18 @@ bool RedditTree::load(std::string fileName) {
         std::string linkId = redditObject["link_id"];
         linkId = linkId.substr(linkId.find("_") + 1);
 
+        // Check if author username is deleted and promote it to a
+        // unique author username (by adding a space)
+        std::stringstream author;
+        author << redditObject["author"];
+        if(author.str().compare("[deleted]")){
+            author << " " << redditObject["id"];
+        }
+
         // Create reddit node
         std::shared_ptr<RedditNode> redditNode = std::make_shared<RedditNode>(
                 redditObject["body"],
-                redditObject["author"],
+                author.str(),
                 redditObject["created_utc"],
                 redditObject["subreddit_id"],
                 linkId,
