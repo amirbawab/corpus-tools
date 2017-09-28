@@ -34,6 +34,10 @@ bool RedditTree::load(std::string fileName) {
         std::string linkId = redditObject["link_id"];
         linkId = linkId.substr(linkId.find("_") + 1);
 
+        // Clean subreddit id
+        std::string subredditId = redditObject["subreddit_id"];
+        subredditId = subredditId.substr(subredditId.find("_") + 1);
+
         // Check if author username is deleted and promote it to a
         // unique author username (by adding a space)
         std::stringstream author;
@@ -47,7 +51,7 @@ bool RedditTree::load(std::string fileName) {
                 redditObject["body"],
                 author.str(),
                 redditObject["created_utc"],
-                redditObject["subreddit_id"],
+                subredditId,
                 linkId,
                 parendId,
                 redditObject["score"],
@@ -168,19 +172,27 @@ bool RedditTree::generateXML(std::string fileName) {
             utterancesCount+=conversation.size();
         }
 
-        outputXML << "    <statistics conversations=\"" << m_conversationNodes.size()
+        outputXML << "<!--" << std::endl
+                  << "    <statistics conversations=\"" << m_conversationNodes.size()
                   << "\" utterances=\"" << utterancesCount << "\">" << std::endl;
         for(auto conversationPair : conversationSizeMap) {
             outputXML << "        <conversation size=\"" << conversationPair.first
                       << "\" count=\"" << conversationPair.second << "\"/>" << std::endl;
         }
-        outputXML << "    </statistics>" << std::endl;
+        outputXML << "    </statistics>" << std::endl
+                  << "-->" << std::endl;
     }
 
     for(auto &conversation : m_conversationNodes) {
-        outputXML << "    <s>" << std::endl;
+        if(conversation.empty()) {
+            throw std::runtime_error("A conversation cannot be empty!");
+        }
+        outputXML << "    <s link_id=\"" << conversation.front()->m_linkId << "\" subreddit_id=\""
+                  << conversation.front()->m_subredditId << "\">" << std::endl;
         for(auto &utterance : conversation) {
-            outputXML << "        <utt uid=\"" << m_authorIds[utterance->m_author] << "\">"
+            outputXML << "        <utt uid=\"" << m_authorIds[utterance->m_author] << "\" comment_id=\""
+                      << utterance->m_id << "\" parent_id=\"" << utterance->m_parentId << "\" score=\""
+                      << utterance->m_score << "\" create_utc=\"" << utterance->m_createdUtc << "\">"
                       << utterance->m_body << "</utt>" << std::endl;
         }
         outputXML << "    </s>" << std::endl;
