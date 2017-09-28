@@ -3,7 +3,8 @@ FROM ubuntu:16.04
 
 # Refresh repo and install packages
 RUN apt-get update
-RUN apt-get install vim wget curl git cmake build-essential -y
+RUN apt-get install vim python3 python3-pip wget curl git cmake build-essential -y
+RUN pip3 install langdetect
 
 # Copy current git repository
 COPY . /ML
