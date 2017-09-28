@@ -9,6 +9,7 @@ echo "                 |_|                                          "
 
 # Global variables
 g_fixedJSON="/tmp/tmp1.json"
+g_processedJSON="/tmp/tmp2.json"
 g_finalXML="/tmp/data.xml"
 
 # Load JSON
@@ -27,18 +28,12 @@ echo ">>>> Generating new JSON file"
 # Start preprocessing the data
 echo 
 echo ">> Pre-processing JSON file ..."
-cat "${g_fixedJSON}" | python3 ./tools/python/xml/preprocess.py --frenchThreshold 0.8
-echo ">>>> Remove links"
-echo "TO BE ADDED"
-echo ">>>> Remove post quotes"
-echo "TO BE ADDED"
-echo ">>>> Remove non-french sentences ..."
-echo "TO BE ADDED"
+cat "${g_fixedJSON}" | python3 ./tools/python/xml/preprocess.py --frenchThreshold 0.8 > "${g_processedJSON}"
 
 # Start the converting the data from JSON to XML
 echo
 echo ">> Converting JSON to XML (this might take few minutes...)"
-./tools/cpp/bin/json2xml -i "${g_fixedJSON}" -o "${g_finalXML}" -m 2
+./tools/cpp/bin/json2xml -i "${g_processedJSON}" -o "${g_finalXML}" -m 2
 
 # End message
 echo "!!!End of pipeline!!!"
